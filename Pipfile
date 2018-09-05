@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+name = "pypi"
+verify_ssl = true
+
+[packages]
+tweepy = {editable = true, git = "https://github.com/tweepy/tweepy.git"}
+
+[requires]
+python_version = "3.7"
+
+[dev-packages]
+ipython = "*"
+pylint = "*"
+pexpect = "*"
+mypy = "*"
+"flake8" = "*"
+coverage = "*"
+"autopep8" = "*"
+rope = "*"
