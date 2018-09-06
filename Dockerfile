@@ -1,6 +1,7 @@
 FROM python:3.7.0
 WORKDIR /usr/src/app
-COPY secret.ini twitter_discord_bot Pipfile Pipfile.lock ./
+COPY secret.ini Pipfile Pipfile.lock ./
+COPY twitter_discord_bot ./twitter_discord_bot
 RUN pip install --no-cache-dir pipenv
 RUN pipenv install --system
 CMD ["python", "twitter_discord_bot/twitter_discord_bot.py"]
