@@ -55,29 +55,24 @@ class DiscordPost():
     content: str = ''
     embeds: Optional[List[Dict[str, Any]]] = None
 
-    @staticmethod
+    class _HasVideoException(Exception):
+        pass
+
+    @classmethod
     def _get_medias_from_twitter_status(
-            status: tweepy.Status
+            cls, status: tweepy.Status
     ) -> Optional[List[Dict[str, Dict[str, str]]]]:
-
-        # twitter media type to discord embed type
-        media_type_to_embed_type = {
-            'photo': 'image',
-            'video': 'video',
-            'animated_gif': 'image',
-        }
-
+        medias = []
         try:
-            return [
-                {
-                    media_type_to_embed_type[media['type']]: {
-                        'url': media['media_url_https']
-                    }
-                }
-                for media in status.extended_entities['media']
-            ]
+            for media in status.extended_entities['media']:
+                if media['type'] == 'video':
+                    raise cls._HasVideoException
+
+                medias.append({'image': {'url': media['media_url_https']}})
         except AttributeError:
             return None
+        else:
+            return medias
 
     @classmethod
     def generate_from_twitter_status(
@@ -94,22 +89,28 @@ class DiscordPost():
         else:
             is_retweet = True
 
-        try:
-            text = target_status.full_text
-        except AttributeError:
-            text = target_status.text
-
         contents: List[str] = []
-        contents.append(f'<http://twitter.com/{user.screen_name}/status/{status.id}>')
 
-        if is_retweet:
-            contents.append(f'RT: {user.name}(@{user.screen_name})\n')
+        # Discord api does not accept videos in the embeds
+        try:
+            embeds = cls._get_medias_from_twitter_status(status=target_status)
+        except cls._HasVideoException:
+            embeds = None
+            content = f'http://twitter.com/{user.screen_name}/status/{status.id}'
+        else:
+            try:
+                text = target_status.full_text
+            except AttributeError:
+                text = target_status.text
 
-        contents.append(text)
+            contents.append(f'<http://twitter.com/{user.screen_name}/status/{status.id}>')
 
-        content = '\n'.join(contents)
+            if is_retweet:
+                contents.append(f'RT: {user.name}(@{user.screen_name})\n')
 
-        embeds = cls._get_medias_from_twitter_status(status=target_status)
+            contents.append(text)
+
+            content = '\n'.join(contents)
 
         post = DiscordPost(
             username=user.name, avatar_url=user.profile_image_url,
