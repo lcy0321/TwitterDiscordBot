@@ -176,6 +176,37 @@ class TestDiscordPost(unittest.TestCase):
         )
         self.assertIsNone(post.embeds)
 
+    def test_generate_from_twitter_status_has_video(self) -> None:
+
+        user_mock = _get_user_mock()
+
+        status_mock = NonCallableMagicMock(
+            spec=['id', 'text', 'text', 'full_text', 'extended_entities']
+        )
+        status_mock.id = TWITTER_STATUS_SAMPLE['id']
+        status_mock.text = TWITTER_STATUS_SAMPLE['text']
+        status_mock.full_text = TWITTER_STATUS_SAMPLE['full_text']
+        status_mock.extended_entities = {
+            'media': [
+                {
+                    'type': 'video',
+                    'media_url_https': TWITTER_STATUS_SAMPLE['media_url_https'],
+                },
+            ]
+        }
+
+        post = DiscordPost.generate_from_twitter_status(user=user_mock, status=status_mock)
+
+        self.assertIsInstance(post, DiscordPost)
+        self.assertEqual(post.username, TWITTER_USER_SAMPLE['name'])
+        self.assertEqual(post.avatar_url, TWITTER_USER_SAMPLE['profile_image_url_orig'])
+        self.assertEqual(
+            post.content,
+            (f'http://twitter.com/{TWITTER_USER_SAMPLE["screen_name"]}/status/'
+             f'{TWITTER_STATUS_SAMPLE["id"]}')
+        )
+        self.assertIsNone(post.embeds)
+
     @patch('twitter_discord_bot.twitter_discord_bot.sleep')
     @patch('requests.post')
     def test_save_with_embeds(self, requests_post_mock: MagicMock, sleep_mock: MagicMock) -> None:
