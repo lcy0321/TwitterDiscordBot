@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  twitter_discord_bot:
+    build: ./
+    image: twitter_discord_bot
+    environment:
+      TZ: Asia/Taipei
+    network_mode: "host"
+    volumes:
+      - type: bind
+        source: ./last_id.ini
+        target: /usr/src/app/last_id.ini
