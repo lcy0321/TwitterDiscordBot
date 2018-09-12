@@ -81,33 +81,29 @@ class DiscordPost():
         """Generate DiscordPost from a TwitterUser and a tweepy.Status"""
 
         # Whether the tweet is a retweet
-        try:
-            target_status = status.retweeted_status
-        except AttributeError:
-            target_status = status
-            is_retweet = False
-        else:
-            is_retweet = True
-
-        contents: List[str] = []
+        is_retweet = hasattr(status, 'retweeted_status')
 
         # Discord api does not accept videos in the embeds
-        try:
-            embeds = cls._get_medias_from_twitter_status(status=target_status)
-        except cls._HasVideoException:
+        if not is_retweet:
+            try:
+                embeds = cls._get_medias_from_twitter_status(status=status)
+                has_video = False
+            except cls._HasVideoException:
+                has_video = True
+
+        if is_retweet or has_video:
             embeds = None
             content = f'http://twitter.com/{user.screen_name}/status/{status.id}'
+
         else:
             try:
-                text = target_status.full_text
+                text = status.full_text
             except AttributeError:
-                text = target_status.text
+                text = status.text
+
+            contents: List[str] = []
 
             contents.append(f'<http://twitter.com/{user.screen_name}/status/{status.id}>')
-
-            if is_retweet:
-                contents.append(f'RT: {user.name}(@{user.screen_name})\n')
-
             contents.append(text)
 
             content = '\n'.join(contents)
