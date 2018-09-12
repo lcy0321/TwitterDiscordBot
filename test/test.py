@@ -456,7 +456,7 @@ class TestHelpFunctions(unittest.TestCase):
         )
         config_parser_mock.return_value.write.assert_called_once_with(open_mock.return_value)
 
-    @patch('twitter_discord_bot.twitter_discord_bot.sleep', side_effect=InterruptedError)
+    @patch('twitter_discord_bot.twitter_discord_bot.receive_stop.wait', side_effect=InterruptedError)
     @patch('twitter_discord_bot.twitter_discord_bot.fetch_and_post')
     @patch('twitter_discord_bot.twitter_discord_bot.save_last_fetched_ids_to_file')
     @patch('twitter_discord_bot.twitter_discord_bot.read_last_fetched_ids_from_file')

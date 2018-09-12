@@ -2,7 +2,9 @@
 import logging
 import re
 from configparser import ConfigParser
+from threading import Event
 from time import sleep
+from types import FrameType
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
@@ -14,6 +16,8 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
 logger.setLevel(logging.DEBUG)
 logging.basicConfig(format='%(asctime)s:%(levelname)-7s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+receive_stop = Event()    # pylint: disable=invalid-name
 
 
 @dataclass(init=False)
@@ -302,6 +306,14 @@ def save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, int
 def main() -> None:
     """main function"""
 
+    def _quit(signo: int, _frame: Optional[FrameType]) -> None:
+        print(f'Receive {Signals(signo).name}, quit.')
+        receive_stop.set()
+
+    from signal import signal, SIGTERM, SIGINT, Signals     # pylint: disable=no-name-in-module
+    signal(SIGTERM, _quit)
+    signal(SIGINT, _quit)
+
     twitter_user_names = [
         'imascg_stage',
         'imasml_theater',
@@ -317,7 +329,7 @@ def main() -> None:
     # Get the last ids that have fecthed
     last_fetched_ids = read_last_fetched_ids_from_file(filename=last_fetched_ids_filename)
 
-    while True:
+    while not receive_stop.is_set():
         last_fetched_ids = fetch_and_post(
             twitter_api=api,
             discord_webhook_url=discord_webhook_url,
@@ -325,7 +337,8 @@ def main() -> None:
             last_fetched_ids=last_fetched_ids,
         )
         save_last_fetched_ids_to_file(last_fetched_ids_filename, last_fetched_ids)
-        sleep(60)
+
+        receive_stop.wait(60)
 
 
 if __name__ == '__main__':
