@@ -330,15 +330,20 @@ def main() -> None:
     last_fetched_ids = read_last_fetched_ids_from_file(filename=last_fetched_ids_filename)
 
     while not receive_stop.is_set():
-        last_fetched_ids = fetch_and_post(
-            twitter_api=api,
-            discord_webhook_url=discord_webhook_url,
-            twitter_user_names=twitter_user_names,
-            last_fetched_ids=last_fetched_ids,
-        )
-        save_last_fetched_ids_to_file(last_fetched_ids_filename, last_fetched_ids)
-
-        receive_stop.wait(60)
+        try:
+            last_fetched_ids = fetch_and_post(
+                twitter_api=api,
+                discord_webhook_url=discord_webhook_url,
+                twitter_user_names=twitter_user_names,
+                last_fetched_ids=last_fetched_ids,
+            )
+        except Exception as exception:
+            logger.error('Failed to fetch tweets.')
+            logger.error(str(exception))
+            receive_stop.wait(600)
+        else:
+            save_last_fetched_ids_to_file(last_fetched_ids_filename, last_fetched_ids)
+            receive_stop.wait(60)
 
 
 if __name__ == '__main__':
