@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 # logging.getLogger('urllib3').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(asctime)s:%(levelname)-7s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 receive_stop = Event()    # pylint: disable=invalid-name
@@ -159,6 +159,11 @@ class DiscordPost():
 #         if status_code not in [200, 201, 204]:
 #             logger.error('Failed to post to the Discord cahnnel, status code: %d.', status_code)
 
+def get_twitter_user_names(filename: str) -> List[str]:
+    """Read Twitter user names that need to fetch from the file"""
+    with open(filename) as user_name_file:
+        return list(filter(None, [user_name.strip() for user_name in user_name_file]))
+
 
 def get_secrets(filename: str) -> Tuple[tweepy.OAuthHandler, str]:
     """Read secret file and return tweepy.OAuthHandler and Discord webhook"""
@@ -261,7 +266,7 @@ def fetch_and_post(
 
         statuses = get_twitter_user_timeline(api=twitter_api, user=user, since_id=since_id)
 
-        logger.info('Found %d new tweet(s).', len(statuses))
+        logger.debug('Found %d new tweet(s).', len(statuses))
 
         post_tweets_to_discord(user=user, statuses=statuses, webhook_url=discord_webhook_url)
 
@@ -314,20 +319,18 @@ def main() -> None:
     signal(SIGTERM, _quit)
     signal(SIGINT, _quit)
 
-    twitter_user_names = [
-        'imascg_stage',
-        'imasml_theater',
-        'imassc_official',
-    ]
-
+    user_name_filename = 'twitter_users.txt'
     secret_filename = 'secret.ini'
     last_fetched_ids_filename = 'last_id.ini'
 
+    twitter_user_names = get_twitter_user_names(user_name_filename)
     auth_handler, discord_webhook_url = get_secrets(filename=secret_filename)
     api = tweepy.API(auth_handler=auth_handler)
 
     # Get the last ids that have fecthed
     last_fetched_ids = read_last_fetched_ids_from_file(filename=last_fetched_ids_filename)
+
+    logger.info('Start to fetch tweets.')
 
     while not receive_stop.is_set():
         try:

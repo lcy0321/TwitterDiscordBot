@@ -4,12 +4,14 @@
 import logging
 import unittest
 from typing import Any
-from unittest.mock import ANY, MagicMock, mock_open, patch, NonCallableMagicMock
+from unittest.mock import (ANY, MagicMock, NonCallableMagicMock, mock_open,
+                           patch)
 
 from tweepy import OAuthHandler
 from twitter_discord_bot.twitter_discord_bot import (DiscordPost, TwitterUser,
                                                      fetch_and_post,
                                                      get_secrets,
+                                                     get_twitter_user_names,
                                                      get_twitter_user_timeline,
                                                      get_twitter_users_infos,
                                                      main,
@@ -265,6 +267,14 @@ class TestDiscordPost(unittest.TestCase):
 
 
 class TestHelpFunctions(unittest.TestCase):
+    @patch('twitter_discord_bot.twitter_discord_bot.open', new_callable=mock_open)
+    def test_get_twitter_user_names(self, open_mock: MagicMock) -> None:
+        usernames_filename = 'usernames.ini'
+
+        user_names = get_twitter_user_names(usernames_filename)
+
+        open_mock.assert_called_once_with(usernames_filename)
+        self.assertTrue(all([isinstance(user_names, str) for user_name in user_names]))
 
     @patch('twitter_discord_bot.twitter_discord_bot.ConfigParser', new=MagicMock())
     @patch('twitter_discord_bot.twitter_discord_bot.open', new_callable=mock_open)
@@ -461,10 +471,12 @@ class TestHelpFunctions(unittest.TestCase):
     @patch('twitter_discord_bot.twitter_discord_bot.save_last_fetched_ids_to_file')
     @patch('twitter_discord_bot.twitter_discord_bot.read_last_fetched_ids_from_file')
     @patch('twitter_discord_bot.twitter_discord_bot.get_secrets')
+    @patch('twitter_discord_bot.twitter_discord_bot.get_twitter_user_names')
     @patch('tweepy.API')
     def test_main(
             self,
             tweepy_api_mock: MagicMock,
+            get_twitter_user_names_mock: MagicMock,
             get_secrets_mock: MagicMock,
             read_last_fetched_ids_from_file_mock: MagicMock,
             save_last_fetched_ids_to_file_mock: MagicMock,
@@ -472,11 +484,13 @@ class TestHelpFunctions(unittest.TestCase):
             sleep_mock: MagicMock,
     ) -> None:
         auth_handler_mock = NonCallableMagicMock()
+        get_twitter_user_names_mock.return_value = ['foo', 'bar']
         get_secrets_mock.return_value = (auth_handler_mock, DISCORD_WEBHOOK_SAMPLE)
 
         with self.assertRaises(InterruptedError):
             main()
 
+        get_twitter_user_names_mock.assert_called_once()
         get_secrets_mock.assert_called_once()
         tweepy_api_mock.assert_called_once_with(auth_handler=auth_handler_mock)
         fetch_and_post_mock.assert_called_once_with(
