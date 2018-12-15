@@ -45,12 +45,12 @@ jobs:
       # https://nose.readthedocs.io
       - run:
           name: run tests
-          command: pipenv run python -m unittest test.test -v
+          command: pipenv run python -m unittest test/*.py -v
 
       - run:
           name: generate coverage
           command: |
-            pipenv run coverage run --source=twitter_discord_bot -m unittest test.test
+            pipenv run coverage run --source=twitter_discord_bot -m unittest test/*.py
             pipenv run coverage html
 
       - store_artifacts:

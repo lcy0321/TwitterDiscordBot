@@ -4,4 +4,4 @@ COPY *.ini *.txt Pipfile Pipfile.lock ./
 COPY twitter_discord_bot ./twitter_discord_bot
 RUN pip install --no-cache-dir pipenv
 RUN pipenv install --system
-CMD ["python", "twitter_discord_bot/twitter_discord_bot.py"]
+CMD ["python", "-m", "twitter_discord_bot"]
