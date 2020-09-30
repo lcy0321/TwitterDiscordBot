@@ -5,10 +5,9 @@ import unittest
 from unittest.mock import MagicMock, NonCallableMagicMock, patch
 
 from twitter_discord_bot.twitter_api import (TwitterUser, get_auth_handler,
-                                             get_twitter_user_timeline,
-                                             get_twitter_users_infos)
+                                             get_twitter_user_timeline)
 
-from .help import TWITTER_USER_SAMPLE, TWITTER_USER_NAMES_SAMPLE
+from .help import TWITTER_USER_SAMPLE
 
 
 class TestTwitterUser(unittest.TestCase):
@@ -52,23 +51,6 @@ class TestTwitterUser(unittest.TestCase):
 
 
 class TestTwitterHelpingFuctions(unittest.TestCase):
-
-    @patch.object(TwitterUser, 'get_from_twitter_api')
-    def test_get_twitter_users_infos(self, get_from_twitter_api_mock: MagicMock) -> None:
-        api_mock = NonCallableMagicMock()
-        twitter_user_mock = NonCallableMagicMock(spec=['user_id'])
-
-        get_from_twitter_api_mock.return_value = twitter_user_mock
-
-        user_infos = get_twitter_users_infos(
-            api=api_mock, twitter_user_names=TWITTER_USER_NAMES_SAMPLE
-        )
-
-        self.assertEqual(get_from_twitter_api_mock.call_args_list, [
-            ({'api': api_mock, 'screen_name': user_name_sample},)
-            for user_name_sample in TWITTER_USER_NAMES_SAMPLE
-        ])
-        self.assertIsInstance(user_infos, dict)
 
     def test_get_twitter_user_timeline_no_last_id(self) -> None:
         api_mock = NonCallableMagicMock()

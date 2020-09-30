@@ -9,11 +9,5 @@ services:
     restart: unless-stopped
     volumes:
       - type: bind
-        source: ./last_id.ini
-        target: /usr/src/app/last_id.ini
-      - type: bind
-        source: ./secret.ini
-        target: /usr/src/app/secret.ini
-      - type: bind
-        source: ./twitter_users.txt
-        target: /usr/src/app/twitter_users.txt
+        source: ./configs
+        target: /usr/src/app/configs

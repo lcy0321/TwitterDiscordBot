@@ -7,6 +7,8 @@ from typing import Dict, List
 import tweepy
 from dataclasses import dataclass
 
+from .models import TwitterAccount
+
 
 @dataclass(init=False)
 class TwitterUser():
@@ -39,15 +41,17 @@ class TwitterUser():
 
 
 def get_twitter_users_infos(
-        api: tweepy.API, twitter_user_names: List[str]
-) -> Dict[int, TwitterUser]:
+        api: tweepy.API,
+        twitter_accounts: List[TwitterAccount],
+) -> Dict[str, TwitterUser]:
     """Get user objects from Twitter"""
 
-    twitter_users_infos: Dict[int, TwitterUser] = {}
+    twitter_users_infos: Dict[str, TwitterUser] = {}
 
-    for screen_name in twitter_user_names:
+    for twitter_account in twitter_accounts:
+        screen_name = twitter_account.twitter
         twitter_user = TwitterUser.get_from_twitter_api(api=api, screen_name=screen_name)
-        twitter_users_infos[twitter_user.user_id] = twitter_user
+        twitter_users_infos[screen_name] = twitter_user
 
     return twitter_users_infos
 

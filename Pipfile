@@ -4,17 +4,18 @@ name = "pypi"
 verify_ssl = true
 
 [packages]
-tweepy = {editable = true, git = "https://github.com/tweepy/tweepy.git"}
+tweepy = "*"
+ruamel-yaml = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
 
 [dev-packages]
 ipython = "*"
 pylint = "*"
 pexpect = "*"
 mypy = "*"
-"flake8" = "*"
+flake8 = "*"
 coverage = "*"
-"autopep8" = "*"
+autopep8 = "*"
 rope = "*"

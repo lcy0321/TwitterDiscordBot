@@ -1,0 +1,30 @@
+---
+- twitter: imascg_stage
+  discord_channels:
+  - dakadaka-bot_imas
+  - qaq-twitter
+
+- twitter: imasml_theater
+  discord_channels:
+  - dakadaka-bot_imas
+  - qaq-twitter
+
+- twitter: imassc_official
+  discord_channels:
+  - dakadaka-bot_imas
+  - qaq-twitter
+
+- twitter: bang_dream_gbp
+  discord_channels:
+  - dakadaka-bot_imas
+  - qaq-twitter
+
+- twitter: pj_sekai
+  discord_channels:
+  - dakadaka-bot_imas
+  - qaq-twitter
+
+- twitter: priconne_redive
+  discord_channels:
+  - qaq-twitter
+...
