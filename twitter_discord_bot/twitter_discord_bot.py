@@ -70,11 +70,17 @@ def post_tweets_to_discord(
         response_code = post.save(webhook_url=webhook_url)
 
         if response_code in [200, 201, 204]:
-            logger.info('Successfully post twitter id %d to the Discord channel.', status.id)
+            logger.info(
+                'Successfully post twitter id %d from %s to the Discord channel.',
+                status.id,
+                user.screen_name,
+            )
         else:
             logger.error(
-                'Failed to post twitter id %d to the Discord channel. Code: %d',
-                status.id, response_code
+                'Failed to post twitter id %d from %s to the Discord channel. Code: %d',
+                status.id,
+                user.screen_name,
+                response_code,
             )
 
 
