@@ -119,7 +119,7 @@ def fetch_and_post(
         logger.debug('Fetching timeline from %s...', twitter_name)
 
         try:
-            since_id = last_fetched_posts[twitter_name]
+            since_id = last_fetched_posts[twitter_name.casefold()]
         except KeyError:
             since_id = -1
 
@@ -138,7 +138,7 @@ def fetch_and_post(
                     statuses=statuses,
                     webhook_url=discord_webhooks[discord_channel],
                 )
-            latest_posts[twitter_name] = statuses[0].id
+            latest_posts[twitter_name.casefold()] = statuses[0].id
 
     return latest_posts
 
@@ -155,7 +155,7 @@ def read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
         return {}
 
     return {
-        screen_name: int(tweet_id)
+        screen_name.casefold(): int(tweet_id)
         for screen_name, tweet_id in config_parser.items(section='LastID')
     }
 
@@ -169,7 +169,7 @@ def save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, int
         config_parser.add_section('LastID')
 
     for screen_name, last_id in last_fetched_ids.items():
-        config_parser['LastID'][screen_name] = str(last_id)
+        config_parser['LastID'][screen_name.casefold()] = str(last_id)
 
     with open(filename, 'w') as last_id_file:
         config_parser.write(last_id_file)
