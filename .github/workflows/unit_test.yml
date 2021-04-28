@@ -1,0 +1,42 @@
+name: Test TwitterDiscordBot
+
+on:
+  push:
+    branches: [ master ]
+
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    env:
+      PIPENV_VENV_IN_PROJECT: true
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        pip install pipenv
+        pipenv install --deploy
+        pipenv install coverage
+
+    - name: Test with unittest and generate test coverage
+      run: |
+        pipenv run coverage run --source=twitter_discord_bot -m unittest -v
+        pipenv run coverage xml
+
+    - uses: codecov/codecov-action@v1
+      with:
+        files: ./coverage.xml
