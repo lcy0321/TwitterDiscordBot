@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../discord-forwarder"
+		},
+		{
+			"path": "../../twitter-receiver"
+		},
+		{
+			"path": "../../rss-receiver"
+		}
+	],
+	"settings": {}
+}
