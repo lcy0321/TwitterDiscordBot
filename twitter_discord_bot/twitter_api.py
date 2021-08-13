@@ -2,10 +2,10 @@
 
 import logging
 import re
+from dataclasses import dataclass
 from typing import Dict, List
 
 import tweepy
-from dataclasses import dataclass
 
 from .models import TwitterAccount
 
@@ -65,13 +65,21 @@ def get_twitter_user_timeline(
         logging.info('Doesn\'t found the information of last ids, fetch lastest 10 tweets...')
 
         statuses = api.user_timeline(
-            user.user_id, tweet_mode='extended', trim_user=True, count=10
+            user.user_id,
+            tweet_mode='extended',
+            trim_user=True,
+            count=10,
+            exclude_replies=True,
         )
     else:
         logging.debug('Fetching tweets since id: %s', since_id)
 
         statuses = api.user_timeline(
-            user.user_id, tweet_mode='extended', trim_user=True, since_id=since_id
+            user.user_id,
+            tweet_mode='extended',
+            trim_user=True,
+            since_id=since_id,
+            exclude_replies=True,
         )
 
     return statuses
