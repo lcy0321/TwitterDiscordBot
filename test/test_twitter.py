@@ -61,7 +61,11 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_mock.user_id, tweet_mode='extended', trim_user=True, count=10
+            user_mock.user_id,
+            tweet_mode='extended',
+            trim_user=True,
+            count=10,
+            exclude_replies=True,
         )
 
     def test_get_twitter_user_timeline_has_last_id(self) -> None:
@@ -69,11 +73,19 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
         user_mock = NonCallableMagicMock()
         since_id = 123456789
 
-        statuses = get_twitter_user_timeline(api=api_mock, user=user_mock, since_id=since_id)
+        statuses = get_twitter_user_timeline(
+            api=api_mock,
+            user=user_mock,
+            since_id=since_id,
+        )
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_mock.user_id, tweet_mode='extended', trim_user=True, since_id=since_id
+            user_mock.user_id,
+            tweet_mode='extended',
+            trim_user=True,
+            since_id=since_id,
+            exclude_replies=True,
         )
 
     def test_get_auth_handler(self) -> None:
