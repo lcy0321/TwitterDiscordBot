@@ -15,9 +15,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      PIPENV_VENV_IN_PROJECT: true
-
     steps:
     - uses: actions/checkout@v2
 
@@ -28,14 +25,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install pipenv
-        pipenv install --deploy
-        pipenv install coverage
+        pip install micropipenv
+        micropipenv install --method pipenv
+        pip install coverage
 
     - name: Test with unittest and generate test coverage
       run: |
-        pipenv run coverage run --source=twitter_discord_bot -m unittest -v
-        pipenv run coverage xml
+        coverage run --source=twitter_discord_bot -m unittest -v
+        coverage xml
 
     - uses: codecov/codecov-action@v1
       with:
