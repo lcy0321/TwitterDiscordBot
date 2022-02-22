@@ -47,21 +47,22 @@ class DiscordPost():
 
         # Whether the tweet is a retweet
         is_retweet = hasattr(status, 'retweeted_status')
+        has_video = False
 
-        # Discord api does not accept videos in the embeds
-        if not is_retweet:
+        if is_retweet:
+            # Currently Discord fails to show preview of retweets
+            embeds = None
+            content = f'http://fxtwitter.com/{user.screen_name}/status/{status.id}'
+        else:
+            # Discord api does not accept videos in the embeds
             try:
                 embeds = cls._get_medias_from_twitter_status(status=status)
             except cls._HasVideoException:
                 has_video = True
-            else:
-                has_video = False
+                embeds = None
+                content = f'http://twitter.com/{user.screen_name}/status/{status.id}'
 
-        if is_retweet or has_video:
-            embeds = None
-            content = f'http://twitter.com/{user.screen_name}/status/{status.id}'
-
-        else:
+        if not (has_video or is_retweet):
             try:
                 text = status.full_text
             except AttributeError:
