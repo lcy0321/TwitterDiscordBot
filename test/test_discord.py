@@ -85,7 +85,7 @@ class TestDiscordPost(unittest.TestCase):
         self.assertEqual(post.avatar_url, TWITTER_USER_SAMPLE['profile_image_url_orig'])
         self.assertEqual(
             post.content,
-            (f'http://twitter.com/{TWITTER_USER_SAMPLE["screen_name"]}/status/'
+            (f'http://fxtwitter.com/{TWITTER_USER_SAMPLE["screen_name"]}/status/'
              f'{TWITTER_STATUS_SAMPLE["id"]}')
         )
         self.assertIsNone(post.embeds)
