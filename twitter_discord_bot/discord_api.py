@@ -1,11 +1,11 @@
 """Helping functions that related to Discord API"""
+from dataclasses import dataclass
 from time import sleep
 from typing import Any, Dict, List, Optional, Union
 
 import requests
-
 import tweepy
-from dataclasses import dataclass
+import tweepy.models
 
 from .twitter_api import TwitterUser
 
@@ -24,7 +24,8 @@ class DiscordPost():
 
     @classmethod
     def _get_medias_from_twitter_status(
-            cls, status: tweepy.Status
+            cls,
+            status: tweepy.models.Status
     ) -> Optional[List[Dict[str, Dict[str, str]]]]:
         try:
             media_entities = status.extended_entities['media']
@@ -41,9 +42,11 @@ class DiscordPost():
 
     @classmethod
     def generate_from_twitter_status(
-            cls, user: TwitterUser, status: tweepy.Status
+            cls,
+            user: TwitterUser,
+            status: tweepy.models.Status
     ) -> 'DiscordPost':
-        """Generate DiscordPost from a TwitterUser and a tweepy.Status"""
+        """Generate DiscordPost from a TwitterUser and a tweepy.models.Status"""
 
         # Whether the tweet is a retweet
         is_retweet = hasattr(status, 'retweeted_status')
@@ -80,8 +83,10 @@ class DiscordPost():
             content = '\n'.join(contents)
 
         post = DiscordPost(
-            username=user.name, avatar_url=user.profile_image_url,
-            content=content, embeds=embeds,
+            username=user.name,
+            avatar_url=user.profile_image_url,
+            content=content,
+            embeds=embeds,
         )
 
         return post
