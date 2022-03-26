@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, NonCallableMagicMock, patch
 
 from twitter_discord_bot.discord_api import DiscordPost
 
-from .help import (DISCORD_WEBHOOK_SAMPLE, TWITTER_STATUS_SAMPLE,
-                   TWITTER_USER_SAMPLE, _get_user_mock)
+from .help import (DISCORD_WEBHOOK_SAMPLE, TWITTER_STATUS_SAMPLE, TWITTER_STATUS_SAMPLE_2,
+                   TWITTER_USER_SAMPLE, TWITTER_USER_SAMPLE_2, _get_user_mock)
 
 
 class TestDiscordPost(unittest.TestCase):
@@ -73,10 +73,15 @@ class TestDiscordPost(unittest.TestCase):
 
         user_mock = _get_user_mock()
 
+        original_status_mock = NonCallableMagicMock(spec=['id', 'text', 'user'])
+        original_status_mock.id = TWITTER_STATUS_SAMPLE_2['id']
+        original_status_mock.text = TWITTER_STATUS_SAMPLE_2['text']
+        original_status_mock.user.screen_name = TWITTER_USER_SAMPLE_2['screen_name']
+
         status_mock = NonCallableMagicMock(spec=['id', 'text', 'retweeted_status'])
         status_mock.id = TWITTER_STATUS_SAMPLE['id']
         status_mock.text = TWITTER_STATUS_SAMPLE['text']
-        status_mock.retweeted_status = status_mock
+        status_mock.retweeted_status = original_status_mock
 
         post = DiscordPost.generate_from_twitter_status(user=user_mock, status=status_mock)
 
@@ -85,8 +90,11 @@ class TestDiscordPost(unittest.TestCase):
         self.assertEqual(post.avatar_url, TWITTER_USER_SAMPLE['profile_image_url_orig'])
         self.assertEqual(
             post.content,
-            (f'http://fxtwitter.com/{TWITTER_USER_SAMPLE["screen_name"]}/status/'
-             f'{TWITTER_STATUS_SAMPLE["id"]}')
+            (
+                f'RT: http://twitter.com/_/status/{TWITTER_STATUS_SAMPLE_2["id"]}\n'
+                f'http://twitter.com/{TWITTER_USER_SAMPLE["screen_name"]}/status/'
+                f'{TWITTER_STATUS_SAMPLE["id"]}'
+            )
         )
         self.assertIsNone(post.embeds)
 
