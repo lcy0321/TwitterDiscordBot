@@ -52,7 +52,11 @@ class DiscordPost():
         if is_retweet:
             # Currently Discord fails to show preview of retweets
             embeds = None
-            content = f'http://fxtwitter.com/{user.screen_name}/status/{status.id}'
+            retweet_id = status.retweeted_status.id
+            content = (
+                f'RT: http://twitter.com/_/status/{retweet_id}\n'
+                f'http://twitter.com/{user.screen_name}/status/{status.id}'
+            )
         else:
             # Discord api does not accept videos in the embeds
             try:
