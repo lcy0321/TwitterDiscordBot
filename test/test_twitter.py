@@ -40,7 +40,7 @@ class TestTwitterUser(unittest.TestCase):
             api_mock, TWITTER_USER_SAMPLE['screen_name']
         )
 
-        api_mock.get_user.assert_called_once_with(TWITTER_USER_SAMPLE['screen_name'])
+        api_mock.get_user.assert_called_once_with(screen_name=TWITTER_USER_SAMPLE['screen_name'])
         twitter_user_init_mock.assert_called_once_with(
             name=TWITTER_USER_SAMPLE['name'],
             screen_name=TWITTER_USER_SAMPLE['screen_name'],
@@ -61,7 +61,7 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_mock.user_id,
+            user_id=user_mock.user_id,
             tweet_mode='extended',
             trim_user=True,
             count=10,
@@ -81,7 +81,7 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_mock.user_id,
+            user_id=user_mock.user_id,
             tweet_mode='extended',
             trim_user=True,
             since_id=since_id,

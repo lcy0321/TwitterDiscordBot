@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 import tweepy
+import tweepy.models
 
 from .models import TwitterAccount
 
@@ -31,7 +32,7 @@ class TwitterUser():
     def get_from_twitter_api(api: tweepy.API, screen_name: str) -> 'TwitterUser':
         """Construct TwitterUser with tweepy.API"""
 
-        user_info = api.get_user(screen_name)
+        user_info = api.get_user(screen_name=screen_name)
 
         user = TwitterUser(
             name=user_info.name, screen_name=user_info.screen_name,
@@ -58,14 +59,14 @@ def get_twitter_users_infos(
 
 def get_twitter_user_timeline(
         api: tweepy.API, user: TwitterUser, since_id: int = -1,
-) -> List[tweepy.Status]:
+) -> List[tweepy.models.Status]:
     """Get statuses of the specific user from Twitter"""
 
     if since_id == -1:
         logging.info('Doesn\'t found the information of last ids, fetch lastest 10 tweets...')
 
         statuses = api.user_timeline(
-            user.user_id,
+            user_id=user.user_id,
             tweet_mode='extended',
             trim_user=True,
             count=10,
@@ -75,7 +76,7 @@ def get_twitter_user_timeline(
         logging.debug('Fetching tweets since id: %s', since_id)
 
         statuses = api.user_timeline(
-            user.user_id,
+            user_id=user.user_id,
             tweet_mode='extended',
             trim_user=True,
             since_id=since_id,
@@ -87,11 +88,12 @@ def get_twitter_user_timeline(
 
 def get_auth_handler(
         consumer_key: str, consumer_secret: str, access_token: str, access_token_secret: str
-) -> tweepy.OAuthHandler:
+) -> tweepy.OAuth1UserHandler:
     """Generate OAuthHandler with given tokens"""
 
-    auth_handler = tweepy.OAuthHandler(
-        consumer_key=consumer_key, consumer_secret=consumer_secret
+    auth_handler = tweepy.OAuth1UserHandler(
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret
     )
     auth_handler.set_access_token(key=access_token, secret=access_token_secret)
     return auth_handler

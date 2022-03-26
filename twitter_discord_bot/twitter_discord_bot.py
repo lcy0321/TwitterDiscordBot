@@ -61,7 +61,7 @@ def get_discord_webhooks(path: str) -> Dict[str, str]:
 
 def post_tweets_to_discord(
         user: TwitterUser,
-        statuses: List[tweepy.Status],
+        statuses: List[tweepy.models.Status],
         webhook_url: str,
 ) -> None:
     """Post the statuses to the Discord channel with the webhook"""
@@ -190,7 +190,7 @@ def main() -> None:
     twitter_accounts = get_twitter_accounts(path=TWITTER_ACCOUNTS_PATH)
     twitter_tokens = get_twitter_secrets(path=TWITTER_SECRETS_PATH)
     discord_webhooks = get_discord_webhooks(path=DISCORD_WEBHOOKS_PATH)
-    api = tweepy.API(auth_handler=get_auth_handler(*twitter_tokens))
+    api = tweepy.API(auth=get_auth_handler(*twitter_tokens))
 
     # Get the last ids that have fecthed
     last_fetched_posts = read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
@@ -206,8 +206,7 @@ def main() -> None:
                 discord_webhooks=discord_webhooks,
             )
         except Exception as exception:
-            logger.error('Failed to fetch tweets.')
-            logger.error(str(exception))
+            logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:
             save_last_fetched_ids_to_file(LAST_FETECHED_POSTS_PATH, last_fetched_posts)
