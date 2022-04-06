@@ -1,0 +1,3 @@
+[run]
+omit =
+    twitter_discord_bot/debug.py
