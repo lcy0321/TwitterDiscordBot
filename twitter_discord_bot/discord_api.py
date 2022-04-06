@@ -34,7 +34,7 @@ class DiscordPost():
 
         medias = []
         for media in media_entities:
-            if media['type'] == 'video':
+            if media['type'] != 'photo':
                 raise cls._HasVideoException
 
             medias.append({'image': {'url': media['media_url_https']}})
