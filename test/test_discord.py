@@ -1,20 +1,21 @@
 """Test"""
 # pylint: disable=C
 
+import typing
 import unittest
 from unittest.mock import MagicMock, NonCallableMagicMock, patch
 
 from twitter_discord_bot.discord_api import DiscordPost
 
 from .help import (DISCORD_WEBHOOK_SAMPLE, TWITTER_STATUS_SAMPLE, TWITTER_STATUS_SAMPLE_2,
-                   TWITTER_USER_SAMPLE, TWITTER_USER_SAMPLE_2, _get_user_mock)
+                   TWITTER_USER_SAMPLE, TWITTER_USER_SAMPLE_2, get_user_mock)
 
 
 class TestDiscordPost(unittest.TestCase):
 
     def test_generate_from_twitter_status_with_full_text_and_media(self) -> None:
 
-        user_mock = _get_user_mock()
+        user_mock = get_user_mock()
 
         status_mock = NonCallableMagicMock(
             spec=['id', 'text', 'text', 'full_text', 'extended_entities']
@@ -50,7 +51,7 @@ class TestDiscordPost(unittest.TestCase):
 
     def test_generate_from_twitter_status_without_full_text_and_media(self) -> None:
 
-        user_mock = _get_user_mock()
+        user_mock = get_user_mock()
 
         status_mock = NonCallableMagicMock(spec=['id', 'text'])
         status_mock.id = TWITTER_STATUS_SAMPLE['id']
@@ -71,7 +72,7 @@ class TestDiscordPost(unittest.TestCase):
 
     def test_generate_from_twitter_status_retweet(self) -> None:
 
-        user_mock = _get_user_mock()
+        user_mock = get_user_mock()
 
         original_status_mock = NonCallableMagicMock(spec=['id', 'text', 'user'])
         original_status_mock.id = TWITTER_STATUS_SAMPLE_2['id']
@@ -100,7 +101,7 @@ class TestDiscordPost(unittest.TestCase):
 
     def test_generate_from_twitter_status_has_video(self) -> None:
 
-        user_mock = _get_user_mock()
+        user_mock = get_user_mock()
 
         status_mock = NonCallableMagicMock(
             spec=['id', 'text', 'text', 'full_text', 'extended_entities']
@@ -129,11 +130,12 @@ class TestDiscordPost(unittest.TestCase):
         )
         self.assertIsNone(post.embeds)
 
+    @typing.no_type_check
     @patch('twitter_discord_bot.discord_api.sleep')
     @patch('requests.post')
     def test_save_with_embeds(self, requests_post_mock: MagicMock, sleep_mock: MagicMock) -> None:
 
-        post = DiscordPost(                                             # type: ignore
+        post = DiscordPost(
             username=TWITTER_USER_SAMPLE['name'],
             avatar_url=TWITTER_USER_SAMPLE['profile_image_url_orig'],
             content=TWITTER_STATUS_SAMPLE['full_text'],
@@ -162,13 +164,14 @@ class TestDiscordPost(unittest.TestCase):
         sleep_mock.assert_called_once_with(sleep_sec)
         self.assertEqual(result, 200)
 
+    @typing.no_type_check
     @patch('twitter_discord_bot.discord_api.sleep')
     @patch('requests.post')
     def test_save_without_embeds(
         self, requests_post_mock: MagicMock, sleep_mock: MagicMock
     ) -> None:
 
-        post = DiscordPost(                                             # type: ignore
+        post = DiscordPost(
             username=TWITTER_USER_SAMPLE['name'],
             avatar_url=TWITTER_USER_SAMPLE['profile_image_url_orig'],
             content=TWITTER_STATUS_SAMPLE['full_text'],

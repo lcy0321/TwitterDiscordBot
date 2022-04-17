@@ -1,31 +1,23 @@
 """Test"""
 # pylint: disable=C
 
+import logging
 import unittest
-from unittest.mock import MagicMock, NonCallableMagicMock, patch
+from unittest.mock import NonCallableMagicMock
 
-from twitter_discord_bot.twitter_api import (TwitterUser, get_auth_handler,
+from twitter_discord_bot.twitter_api import (TwitterUserWrapper,
+                                             get_auth_handler,
                                              get_twitter_user_timeline)
 
 from .help import TWITTER_USER_SAMPLE
+
+module_logger = logging.getLogger('twitter_discord_bot.twitter_api')
+module_logger.setLevel(logging.CRITICAL)
 
 
 class TestTwitterUser(unittest.TestCase):
 
     def test_init(self) -> None:
-        user = TwitterUser(                                                     # type: ignore
-            name=TWITTER_USER_SAMPLE['name'],
-            screen_name=TWITTER_USER_SAMPLE['screen_name'],
-            user_id=TWITTER_USER_SAMPLE['id'],
-            profile_image_url=TWITTER_USER_SAMPLE['profile_image_url'],
-        )
-        self.assertEqual(user.name, TWITTER_USER_SAMPLE['name'])
-        self.assertEqual(user.screen_name, TWITTER_USER_SAMPLE['screen_name'])
-        self.assertEqual(user.user_id, TWITTER_USER_SAMPLE['id'])
-        self.assertEqual(user.profile_image_url, TWITTER_USER_SAMPLE['profile_image_url_orig'])
-
-    @patch.object(target=TwitterUser, attribute='__init__')
-    def test_get_from_twitter_api(self, twitter_user_init_mock: MagicMock) -> None:
 
         api_mock = NonCallableMagicMock()
         api_mock_user_info = api_mock.get_user.return_value
@@ -34,20 +26,17 @@ class TestTwitterUser(unittest.TestCase):
         api_mock_user_info.id = TWITTER_USER_SAMPLE['id']
         api_mock_user_info.profile_image_url_https = TWITTER_USER_SAMPLE['profile_image_url']
 
-        twitter_user_init_mock.return_value = None
-
-        user = TwitterUser.get_from_twitter_api(                  # type: ignore
-            api_mock, TWITTER_USER_SAMPLE['screen_name']
+        user = TwitterUserWrapper(
+            api_mock,
+            TWITTER_USER_SAMPLE['screen_name'],     # type: ignore
         )
+
+        self.assertEqual(user.name, TWITTER_USER_SAMPLE['name'])
+        self.assertEqual(user.screen_name, TWITTER_USER_SAMPLE['screen_name'])
+        self.assertEqual(user.user_id, TWITTER_USER_SAMPLE['id'])
+        self.assertEqual(user.profile_image_url, TWITTER_USER_SAMPLE['profile_image_url_orig'])
 
         api_mock.get_user.assert_called_once_with(screen_name=TWITTER_USER_SAMPLE['screen_name'])
-        twitter_user_init_mock.assert_called_once_with(
-            name=TWITTER_USER_SAMPLE['name'],
-            screen_name=TWITTER_USER_SAMPLE['screen_name'],
-            user_id=TWITTER_USER_SAMPLE['id'],
-            profile_image_url=TWITTER_USER_SAMPLE['profile_image_url'],
-        )
-        self.assertIsInstance(user, TwitterUser)
 
 
 class TestTwitterHelpingFuctions(unittest.TestCase):
@@ -61,7 +50,7 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_id=user_mock.user_id,
+            screen_name=user_mock.screen_name,
             tweet_mode='extended',
             trim_user=True,
             count=10,
@@ -81,7 +70,7 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
 
         self.assertEqual(statuses, api_mock.user_timeline.return_value)
         api_mock.user_timeline.assert_called_once_with(
-            user_id=user_mock.user_id,
+            screen_name=user_mock.screen_name,
             tweet_mode='extended',
             trim_user=True,
             since_id=since_id,

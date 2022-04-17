@@ -7,7 +7,7 @@ import requests
 import tweepy
 import tweepy.models
 
-from .twitter_api import TwitterUser
+from .twitter_api import TwitterUserWrapper
 
 
 @dataclass
@@ -43,10 +43,10 @@ class DiscordPost():
     @classmethod
     def generate_from_twitter_status(
             cls,
-            user: TwitterUser,
+            user: TwitterUserWrapper,
             status: tweepy.models.Status
     ) -> 'DiscordPost':
-        """Generate DiscordPost from a TwitterUser and a tweepy.models.Status"""
+        """Generate DiscordPost from a TwitterUserWrapper and a tweepy.models.Status"""
 
         # Whether the tweet is a retweet
         is_retweet = hasattr(status, 'retweeted_status')

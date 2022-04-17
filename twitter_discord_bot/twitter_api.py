@@ -1,8 +1,8 @@
 """Helping functions that related to Twitter API"""
 
+from __future__ import annotations
 import logging
 import re
-from dataclasses import dataclass
 from typing import Dict, List
 
 import tweepy
@@ -10,73 +10,126 @@ import tweepy.models
 
 from .models import TwitterAccount
 
+logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
+logger.setLevel(logging.DEBUG)
 
-@dataclass(init=False)
-class TwitterUser():
-    """Contains the infomation of a Twitter user"""
 
-    name: str
+class TwitterUserWrapper():
+    """
+    Contains the infomation of a Twitter user
+
+    Fetch the information from Twitter only when needed (lazy loading).
+    """
+
     screen_name: str
-    user_id: int
-    profile_image_url: str
+
+    _api: tweepy.API
+    _has_initalize: bool = False
+
+    _name: str
+    _user_id: int
+    _profile_image_url: str
 
     def __init__(
-            self, name: str, screen_name: str, user_id: int, profile_image_url: str,
+            self,
+            api: tweepy.API,
+            screen_name: str
     ) -> None:
-        self.name = name
+        self._api = api
         self.screen_name = screen_name
-        self.user_id = user_id
-        self.profile_image_url = re.sub(r'_normal(\..+)$', R'\1', profile_image_url)
 
     @staticmethod
-    def get_from_twitter_api(api: tweepy.API, screen_name: str) -> 'TwitterUser':
-        """Construct TwitterUser with tweepy.API"""
+    def _contruct_for_testing(
+        name: str,
+        screen_name: str,
+        user_id: int,
+        profile_image_url: str,
+    ) -> TwitterUserWrapper:
+        """Initialize the objects directly by the given values, onlt for testing."""
 
-        user_info = api.get_user(screen_name=screen_name)
+        obj = TwitterUserWrapper(None, screen_name)
+        obj._name = name
+        obj._user_id = user_id
+        obj._profile_image_url = profile_image_url
 
-        user = TwitterUser(
-            name=user_info.name, screen_name=user_info.screen_name,
-            user_id=user_info.id, profile_image_url=user_info.profile_image_url_https,
+        obj._has_initalize = True
+
+        return obj
+
+    def _sync_with_twitter_api(self) -> None:
+        """Fetch the information via Twitter API"""
+
+        logger.debug(f'Fetching user info of {self.screen_name}...')
+        user_info = self._api.get_user(screen_name=self.screen_name)
+
+        self._name = user_info.name
+        self._user_id = user_info.id
+        self._profile_image_url = re.sub(
+            r'_normal(\..+)$',
+            R'\1',
+            user_info.profile_image_url_https,
         )
-        return user
+
+        self._has_initalize = True
+
+    def _init_if_needed(self) -> None:
+        if not self._has_initalize:
+            self._sync_with_twitter_api()
+
+    @property
+    def name(self) -> str:
+        self._init_if_needed()
+        return self._name
+
+    @property
+    def user_id(self) -> int:
+        self._init_if_needed()
+        return self._user_id
+
+    @property
+    def profile_image_url(self) -> str:
+        self._init_if_needed()
+        return self._profile_image_url
 
 
 def get_twitter_users_infos(
         api: tweepy.API,
         twitter_accounts: List[TwitterAccount],
-) -> Dict[str, TwitterUser]:
+) -> Dict[str, TwitterUserWrapper]:
     """Get user objects from Twitter"""
 
-    twitter_users_infos: Dict[str, TwitterUser] = {}
+    twitter_users_infos: Dict[str, TwitterUserWrapper] = {}
 
     for twitter_account in twitter_accounts:
         screen_name = twitter_account.twitter
-        twitter_user = TwitterUser.get_from_twitter_api(api=api, screen_name=screen_name)
+        twitter_user = TwitterUserWrapper(api=api, screen_name=screen_name)
         twitter_users_infos[screen_name] = twitter_user
 
     return twitter_users_infos
 
 
 def get_twitter_user_timeline(
-        api: tweepy.API, user: TwitterUser, since_id: int = -1,
+        api: tweepy.API,
+        user: TwitterUserWrapper,
+        since_id: int = -1,
 ) -> List[tweepy.models.Status]:
     """Get statuses of the specific user from Twitter"""
 
     if since_id == -1:
-        logging.info('Doesn\'t found the information of last ids, fetch lastest 10 tweets...')
+        logger.info('Doesn\'t found the information of last ids, fetch lastest 10 tweets...')
 
         statuses = api.user_timeline(
-            user_id=user.user_id,
+            screen_name=user.screen_name,
             tweet_mode='extended',
             trim_user=True,
             count=10,
             exclude_replies=True,
         )
     else:
-        logging.debug('Fetching tweets since id: %s', since_id)
+        logger.debug('Fetching tweets since id: %s', since_id)
 
         statuses = api.user_timeline(
-            user_id=user.user_id,
+            screen_name=user.screen_name,
             tweet_mode='extended',
             trim_user=True,
             since_id=since_id,
@@ -87,7 +140,10 @@ def get_twitter_user_timeline(
 
 
 def get_auth_handler(
-        consumer_key: str, consumer_secret: str, access_token: str, access_token_secret: str
+        consumer_key: str,
+        consumer_secret: str,
+        access_token: str,
+        access_token_secret: str
 ) -> tweepy.OAuth1UserHandler:
     """Generate OAuthHandler with given tokens"""
 

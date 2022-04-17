@@ -9,16 +9,16 @@ from typing import Dict, List, Mapping, Optional, Tuple
 import tweepy
 from ruamel.yaml import YAML
 
-from .configs import (LAST_FETECHED_POSTS_PATH, TWITTER_ACCOUNTS_PATH,
-                      TWITTER_SECRETS_PATH, DISCORD_WEBHOOKS_PATH)
+from .configs import (DISCORD_WEBHOOKS_PATH, LAST_FETECHED_POSTS_PATH,
+                      TWITTER_ACCOUNTS_PATH, TWITTER_SECRETS_PATH)
 from .discord_api import DiscordPost
 from .models import TwitterAccount
-from .twitter_api import (TwitterUser, get_auth_handler,
+from .twitter_api import (TwitterUserWrapper, get_auth_handler,
                           get_twitter_user_timeline, get_twitter_users_infos)
 
 # logging.getLogger('urllib3').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logging.basicConfig(format='%(asctime)s:%(levelname)-7s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
@@ -60,7 +60,7 @@ def get_discord_webhooks(path: str) -> Dict[str, str]:
 
 
 def post_tweets_to_discord(
-        user: TwitterUser,
+        user: TwitterUserWrapper,
         statuses: List[tweepy.models.Status],
         webhook_url: str,
 ) -> None:
@@ -205,7 +205,7 @@ def main() -> None:
                 last_fetched_posts=last_fetched_posts,
                 discord_webhooks=discord_webhooks,
             )
-        except Exception as exception:
+        except Exception:
             logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:
