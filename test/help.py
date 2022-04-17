@@ -2,7 +2,7 @@
 from typing import Any
 from unittest.mock import NonCallableMagicMock
 
-from twitter_discord_bot.twitter_discord_bot import TwitterUser
+from twitter_discord_bot.twitter_discord_bot import TwitterUserWrapper
 
 TWITTER_USER_SAMPLE = {
     'name': 'name',
@@ -45,8 +45,8 @@ TWITTER_USER_NAMES_SAMPLE = [
 DISCORD_WEBHOOK_SAMPLE = 'https://webhook.discord.local'
 
 
-def _get_user_mock(screen_name: Any = TWITTER_USER_SAMPLE['screen_name']) -> NonCallableMagicMock:
-    user_mock = NonCallableMagicMock(spec=TwitterUser)
+def get_user_mock(screen_name: Any = TWITTER_USER_SAMPLE['screen_name']) -> NonCallableMagicMock:
+    user_mock = NonCallableMagicMock(spec=TwitterUserWrapper)
     user_mock.name = TWITTER_USER_SAMPLE['name']
     user_mock.screen_name = screen_name
     user_mock.user_id = TWITTER_USER_SAMPLE['id']

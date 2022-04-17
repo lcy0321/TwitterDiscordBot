@@ -11,7 +11,7 @@ import tweepy.models
 
 from .configs import TWITTER_SECRETS_PATH
 from .discord_api import DiscordPost
-from .twitter_api import TwitterUser, get_auth_handler
+from .twitter_api import TwitterUserWrapper, get_auth_handler
 from .twitter_discord_bot import get_twitter_secrets
 
 
@@ -29,7 +29,7 @@ def main() -> None:
         id=tweet_id,
         tweet_mode='extended',
     )
-    stub_user = TwitterUser(
+    stub_user = TwitterUserWrapper._contruct_for_testing(
         name='name',
         screen_name='screen_name',
         user_id=0,
