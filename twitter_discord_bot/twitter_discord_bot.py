@@ -221,7 +221,7 @@ def main() -> None:
             receive_stop.wait(600)
         else:
             save_last_fetched_ids_to_file(LAST_FETECHED_POSTS_PATH, last_fetched_posts)
-            receive_stop.wait(60)
+            receive_stop.wait(30)
 
 
 if __name__ == '__main__':
