@@ -11,14 +11,14 @@ import tweepy.models
 
 from .configs import TWITTER_SECRETS_PATH
 from .discord_api import DiscordPost
-from .twitter_api import TwitterUserWrapper, get_auth_handler
-from .twitter_discord_bot import get_twitter_secrets
+from .twitter_api import TwitterUserWrapper
+from .twitter_discord_bot import _get_twitter_bearer_token
 
 
 def main() -> None:
 
-    twitter_tokens = get_twitter_secrets(path=TWITTER_SECRETS_PATH)
-    api = tweepy.API(auth=get_auth_handler(*twitter_tokens))
+    twitter_bearer_token = _get_twitter_bearer_token(path=TWITTER_SECRETS_PATH)
+    api = tweepy.API(auth=tweepy.OAuth2BearerHandler(bearer_token=twitter_bearer_token))
 
     tweet_id = sys.argv[1]
 

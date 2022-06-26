@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from signal import SIGINT, SIGTERM, Signals, signal
 from threading import Event
 from types import FrameType
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Optional
 
 import tweepy
 from ruamel.yaml import YAML
@@ -13,8 +13,8 @@ from .configs import (DISCORD_WEBHOOKS_PATH, LAST_FETECHED_POSTS_PATH,
                       TWITTER_ACCOUNTS_PATH, TWITTER_SECRETS_PATH)
 from .discord_api import DiscordPost
 from .models import TwitterAccount
-from .twitter_api import (TwitterUserWrapper, get_auth_handler,
-                          get_twitter_user_timeline, get_twitter_users_infos)
+from .twitter_api import (TwitterUserWrapper, get_twitter_user_timeline,
+                          get_twitter_users_infos)
 
 for logger_to_suppressed in (
         'urllib3',
@@ -33,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
 
 
-def get_twitter_accounts(path: str) -> List[TwitterAccount]:
+def _get_twitter_accounts(path: str) -> List[TwitterAccount]:
     """Read Twitter user names that need to fetch from the file"""
     yaml = YAML()
     with open(path) as twitter_accounts_flle:
@@ -45,24 +45,19 @@ def get_twitter_accounts(path: str) -> List[TwitterAccount]:
     ]
 
 
-def get_twitter_secrets(path: str) -> Tuple[str, str, str, str]:
-    """Read Twitter secrets from the file"""
-    config_parser = ConfigParser()
+def _get_twitter_bearer_token(path: str) -> str:
+    """Read Twitter Bearer Token from the file"""
+    config_parser = ConfigParser(interpolation=None)
 
     with open(path) as secret_config_file:
         config_parser.read_file(secret_config_file)
 
-    consumer_key = config_parser['Twitter']['ConsumerKey']
-    consumer_secret = config_parser['Twitter']['ConsumerSecret']
-    access_token = config_parser['Twitter']['AccessToken']
-    access_token_secret = config_parser['Twitter']['AccessTokenSecret']
-
-    return (consumer_key, consumer_secret, access_token, access_token_secret)
+    return config_parser['Twitter']['BearerToken']
 
 
-def get_discord_webhooks(path: str) -> Dict[str, str]:
+def _get_discord_webhooks(path: str) -> Dict[str, str]:
     """Read Discord webhook urls from the file"""
-    config_parser = ConfigParser()
+    config_parser = ConfigParser(interpolation=None)
 
     with open(path) as webhooks_file:
         config_parser.read_file(webhooks_file)
@@ -70,7 +65,7 @@ def get_discord_webhooks(path: str) -> Dict[str, str]:
     return dict(config_parser['Webhooks'])
 
 
-def post_tweets_to_discord(
+def _post_tweets_to_discord(
         user: TwitterUserWrapper,
         statuses: List[tweepy.models.Status],
         webhook_url: str,
@@ -95,7 +90,7 @@ def post_tweets_to_discord(
             )
 
 
-def fetch_and_post(
+def _fetch_and_post(
         twitter_api: tweepy.API,
         twitter_accounts: List[TwitterAccount],
         discord_webhooks: Mapping[str, str],
@@ -144,7 +139,7 @@ def fetch_and_post(
 
         if statuses:
             for discord_channel in twitter_account.discord_channels:
-                post_tweets_to_discord(
+                _post_tweets_to_discord(
                     user=twitter_user,
                     statuses=statuses,
                     webhook_url=discord_webhooks[discord_channel],
@@ -154,10 +149,10 @@ def fetch_and_post(
     return latest_posts
 
 
-def read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
+def _read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
     """Read the id of tweets that have fetched last time from the file"""
 
-    config_parser = ConfigParser()
+    config_parser = ConfigParser(interpolation=None)
 
     try:
         with open(filename) as last_id_file:
@@ -171,10 +166,10 @@ def read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
     }
 
 
-def save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, int]) -> None:
+def _save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, int]) -> None:
     """Read the id of tweets that have fetched last time from the file"""
 
-    config_parser = ConfigParser()
+    config_parser = ConfigParser(interpolation=None)
 
     if not config_parser.has_section('LastID'):
         config_parser.add_section('LastID')
@@ -198,19 +193,19 @@ def main() -> None:
     signal(SIGTERM, _quit)
     signal(SIGINT, _quit)
 
-    twitter_accounts = get_twitter_accounts(path=TWITTER_ACCOUNTS_PATH)
-    twitter_tokens = get_twitter_secrets(path=TWITTER_SECRETS_PATH)
-    discord_webhooks = get_discord_webhooks(path=DISCORD_WEBHOOKS_PATH)
-    api = tweepy.API(auth=get_auth_handler(*twitter_tokens))
+    twitter_accounts = _get_twitter_accounts(path=TWITTER_ACCOUNTS_PATH)
+    twitter_bearer_token = _get_twitter_bearer_token(path=TWITTER_SECRETS_PATH)
+    discord_webhooks = _get_discord_webhooks(path=DISCORD_WEBHOOKS_PATH)
+    api = tweepy.API(auth=tweepy.OAuth2BearerHandler(bearer_token=twitter_bearer_token))
 
     # Get the last ids that have fecthed
-    last_fetched_posts = read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
+    last_fetched_posts = _read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
 
     logger.info('Start to fetch tweets.')
 
     while not receive_stop.is_set():
         try:
-            last_fetched_posts = fetch_and_post(
+            last_fetched_posts = _fetch_and_post(
                 twitter_api=api,
                 twitter_accounts=twitter_accounts,
                 last_fetched_posts=last_fetched_posts,
@@ -220,7 +215,7 @@ def main() -> None:
             logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:
-            save_last_fetched_ids_to_file(LAST_FETECHED_POSTS_PATH, last_fetched_posts)
+            _save_last_fetched_ids_to_file(LAST_FETECHED_POSTS_PATH, last_fetched_posts)
             receive_stop.wait(30)
 
 
