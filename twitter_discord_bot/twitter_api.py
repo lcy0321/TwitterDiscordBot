@@ -137,19 +137,3 @@ def get_twitter_user_timeline(
         )
 
     return statuses
-
-
-def get_auth_handler(
-        consumer_key: str,
-        consumer_secret: str,
-        access_token: str,
-        access_token_secret: str
-) -> tweepy.OAuth1UserHandler:
-    """Generate OAuthHandler with given tokens"""
-
-    auth_handler = tweepy.OAuth1UserHandler(
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret
-    )
-    auth_handler.set_access_token(key=access_token, secret=access_token_secret)
-    return auth_handler

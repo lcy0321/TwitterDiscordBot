@@ -6,7 +6,6 @@ import unittest
 from unittest.mock import NonCallableMagicMock
 
 from twitter_discord_bot.twitter_api import (TwitterUserWrapper,
-                                             get_auth_handler,
                                              get_twitter_user_timeline)
 
 from .help import TWITTER_USER_SAMPLE
@@ -76,16 +75,3 @@ class TestTwitterHelpingFuctions(unittest.TestCase):
             since_id=since_id,
             exclude_replies=True,
         )
-
-    def test_get_auth_handler(self) -> None:
-        test_tokens = {
-            'consumer_key': 'abc',
-            'consumer_secret': 'def',
-            'access_token': 'ghi',
-            'access_token_secret': 'jkl',
-        }
-        auth_handler = get_auth_handler(**test_tokens)
-        self.assertIsNotNone(auth_handler.consumer_key)
-        self.assertIsNotNone(auth_handler.consumer_secret)
-        self.assertIsNotNone(auth_handler.access_token)
-        self.assertIsNotNone(auth_handler.access_token_secret)

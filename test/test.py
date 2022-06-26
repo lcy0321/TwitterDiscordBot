@@ -6,8 +6,12 @@ import unittest
 from unittest.mock import MagicMock, NonCallableMagicMock, mock_open, patch
 
 from twitter_discord_bot.twitter_discord_bot import (
-    DiscordPost, get_twitter_secrets, post_tweets_to_discord,
-    read_last_fetched_ids_from_file, save_last_fetched_ids_to_file)
+    DiscordPost,
+    _get_twitter_bearer_token,
+    _post_tweets_to_discord,
+    _read_last_fetched_ids_from_file,
+    _save_last_fetched_ids_to_file,
+)
 
 from .help import DISCORD_WEBHOOK_SAMPLE
 
@@ -16,16 +20,6 @@ module_logger.setLevel(logging.CRITICAL)
 
 
 class TestHelpFunctions(unittest.TestCase):
-    @patch('twitter_discord_bot.twitter_discord_bot.ConfigParser', new=MagicMock())
-    @patch('twitter_discord_bot.twitter_discord_bot.open', new_callable=mock_open)
-    def test_get_twitter_secrets(self, open_mock: MagicMock) -> None:
-        secret_filename = 'iamsecret.ini'
-
-        twitter_tokens = get_twitter_secrets(secret_filename)
-
-        open_mock.assert_called_once_with(secret_filename)
-        self.assertTrue(len(twitter_tokens) == 4)
-
     @patch.object(DiscordPost, 'generate_from_twitter_status')
     def test_post_tweets_to_discord(self, generate_from_twitter_status_mock: MagicMock) -> None:
         user_mock = NonCallableMagicMock()
@@ -36,7 +30,7 @@ class TestHelpFunctions(unittest.TestCase):
             200, 201, 204, 304, 400, 401, 403, 404, 405, 429
         ]
 
-        post_tweets_to_discord(user=user_mock, statuses=status_mocks, webhook_url=webhook_url)
+        _post_tweets_to_discord(user=user_mock, statuses=status_mocks, webhook_url=webhook_url)
 
         self.assertEqual(
             generate_from_twitter_status_mock.call_args_list,
@@ -52,7 +46,7 @@ class TestHelpFunctions(unittest.TestCase):
     def test_read_last_fetched_ids_from_file(self) -> None:
         last_id_filename = 'last_id_test.ini'
 
-        last_ids = read_last_fetched_ids_from_file(filename=last_id_filename)
+        last_ids = _read_last_fetched_ids_from_file(filename=last_id_filename)
 
         self.assertIsInstance(last_ids, dict)
 
@@ -63,7 +57,7 @@ class TestHelpFunctions(unittest.TestCase):
     ) -> None:
         last_id_filename = 'last_id_test.ini'
 
-        last_ids = read_last_fetched_ids_from_file(filename=last_id_filename)
+        last_ids = _read_last_fetched_ids_from_file(filename=last_id_filename)
 
         config_parser_mock.return_value.read_file.assert_not_called()
         self.assertEqual(last_ids, {})
@@ -82,7 +76,7 @@ class TestHelpFunctions(unittest.TestCase):
 
         config_parser_mock.return_value.has_section.return_value = True
 
-        save_last_fetched_ids_to_file(
+        _save_last_fetched_ids_to_file(
             filename=last_id_filename, last_fetched_ids=last_fetched_ids_mock
         )
 
@@ -102,7 +96,7 @@ class TestHelpFunctions(unittest.TestCase):
 
         config_parser_mock.return_value.has_section.return_value = False
 
-        save_last_fetched_ids_to_file(
+        _save_last_fetched_ids_to_file(
             filename=last_id_filename, last_fetched_ids=last_fetched_ids
         )
 
