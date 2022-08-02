@@ -3,28 +3,34 @@
   discord_channels:
   - dakadaka-bot_imas
   - qaq-twitter
+  interval: 1
 
 - twitter: imasml_theater
   discord_channels:
   - dakadaka-bot_imas
   - qaq-twitter
+  interval: 1
 
 - twitter: imassc_official
   discord_channels:
   - dakadaka-bot_imas
   - qaq-twitter
+  interval: 1
 
 - twitter: bang_dream_gbp
   discord_channels:
   - dakadaka-bot_imas
   - qaq-twitter
+  interval: 1
 
 - twitter: pj_sekai
   discord_channels:
   - dakadaka-bot_imas
   - qaq-twitter
+  interval: 1
 
 - twitter: priconne_redive
   discord_channels:
   - qaq-twitter
+  interval: 1
 ...

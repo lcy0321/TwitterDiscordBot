@@ -95,6 +95,8 @@ def _fetch_and_post(
         twitter_accounts: List[TwitterAccount],
         discord_webhooks: Mapping[str, str],
         last_fetched_posts: Dict[str, int],
+        # to determine wheteher to post according to the interval
+        interval_count: int,
 ) -> Dict[str, int]:
     """
     Fetch tweets and post them to the Discord channel.
@@ -112,6 +114,12 @@ def _fetch_and_post(
 
     # Fetching timeline
     for twitter_account in twitter_accounts:
+
+        if interval_count % twitter_account.interval != 0:
+            logger.debug(
+                f'{twitter_account.twitter} does\'t need to be fetched according'
+                ' to the interval setting, ignore.'
+            )
 
         if not twitter_account.discord_channels:
             logger.warning(
@@ -203,6 +211,8 @@ def main() -> None:
 
     logger.info('Start to fetch tweets.')
 
+    interval_count = 0
+
     while not receive_stop.is_set():
         try:
             last_fetched_posts = _fetch_and_post(
@@ -210,13 +220,15 @@ def main() -> None:
                 twitter_accounts=twitter_accounts,
                 last_fetched_posts=last_fetched_posts,
                 discord_webhooks=discord_webhooks,
+                interval_count=interval_count,
             )
         except Exception:
             logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:
             _save_last_fetched_ids_to_file(LAST_FETECHED_POSTS_PATH, last_fetched_posts)
-            receive_stop.wait(30)
+            interval_count += 1
+            receive_stop.wait(60)
 
 
 if __name__ == '__main__':

@@ -9,3 +9,4 @@ class TwitterAccount:
     """Information of a Twitter account to be fetched"""
     twitter: str
     discord_channels: Optional[List[str]] = None
+    interval: int = 1
