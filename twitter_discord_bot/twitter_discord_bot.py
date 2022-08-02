@@ -150,7 +150,7 @@ def _fetch_and_post(
                 _post_tweets_to_discord(
                     user=twitter_user,
                     statuses=statuses,
-                    webhook_url=discord_webhooks[discord_channel],
+                    webhook_url=discord_webhooks[discord_channel.lower()],
                 )
             latest_posts[twitter_name.casefold()] = statuses[0].id
 
