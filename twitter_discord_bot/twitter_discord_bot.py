@@ -1,10 +1,11 @@
 """A bot that fetch tweets from Twitter and post to Discord"""
 import logging
+import sys
 from configparser import ConfigParser
 from signal import SIGINT, SIGTERM, Signals, signal
 from threading import Event
 from types import FrameType
-from typing import Dict, List, Mapping, Optional
+from typing import Dict, Iterable, List, Mapping, Optional
 
 import tweepy
 from ruamel.yaml import YAML
@@ -114,45 +115,53 @@ def _fetch_and_post(
 
     # Fetching timeline
     for twitter_account in twitter_accounts:
-
-        if interval_count % twitter_account.interval != 0:
-            logger.debug(
-                f'{twitter_account.twitter} does\'t need to be fetched according'
-                ' to the interval setting, ignore.'
-            )
-
-        if not twitter_account.discord_channels:
-            logger.warning(
-                f'{twitter_account.twitter} does\'t need to post to any Discord channel, ignore.',
-            )
-            continue
-
-        twitter_name = twitter_account.twitter
-        twitter_user = twitter_users_infos[twitter_name]
-
-        logger.debug('Fetching timeline from %s...', twitter_name)
-
         try:
-            since_id = last_fetched_posts[twitter_name.casefold()]
-        except KeyError:
-            since_id = -1
 
-        statuses = get_twitter_user_timeline(
-            api=twitter_api,
-            user=twitter_user,
-            since_id=since_id,
-        )
-
-        logger.debug('Found %d new tweet(s).', len(statuses))
-
-        if statuses:
-            for discord_channel in twitter_account.discord_channels:
-                _post_tweets_to_discord(
-                    user=twitter_user,
-                    statuses=statuses,
-                    webhook_url=discord_webhooks[discord_channel.lower()],
+            if interval_count % twitter_account.interval != 0:
+                logger.debug(
+                    f'{twitter_account.twitter} does\'t need to be fetched according'
+                    ' to the interval setting, ignore.'
                 )
-            latest_posts[twitter_name.casefold()] = statuses[0].id
+
+            if not twitter_account.discord_channels:
+                logger.warning(
+                    f'{twitter_account.twitter} does\'t need to post to any'
+                    ' Discord channel, ignore.'
+                )
+                continue
+
+            twitter_name = twitter_account.twitter
+            twitter_user = twitter_users_infos[twitter_name]
+
+            logger.debug('Fetching timeline from %s...', twitter_name)
+
+            try:
+                since_id = last_fetched_posts[twitter_name.casefold()]
+            except KeyError:
+                since_id = -1
+
+            statuses = get_twitter_user_timeline(
+                api=twitter_api,
+                user=twitter_user,
+                since_id=since_id,
+            )
+
+            logger.debug('Found %d new tweet(s).', len(statuses))
+
+            if statuses:
+                for discord_channel in twitter_account.discord_channels:
+                    _post_tweets_to_discord(
+                        user=twitter_user,
+                        statuses=statuses,
+                        webhook_url=discord_webhooks[discord_channel.lower()],
+                    )
+                latest_posts[twitter_name.casefold()] = statuses[0].id
+
+        except Exception:   # pylint: disable=broad-except
+            logger.exception(
+                'Failed to process the Twitter account: %s',
+                twitter_account,
+            )
 
     return latest_posts
 
@@ -189,6 +198,25 @@ def _save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, in
         config_parser.write(last_id_file)
 
 
+def _is_configuration_valid(
+        twitter_accounts: Iterable[TwitterAccount],
+        discord_webhooks: Mapping[str, str],
+) -> bool:
+    """Check if all specified webhooks are configured."""
+    for twitter_account in twitter_accounts:
+        if twitter_account.discord_channels:
+            for discord_channel in twitter_account.discord_channels:
+                if not discord_webhooks.get(
+                        discord_channel.lower(), ''
+                ).startswith('https://discord.com/api/webhooks/'):
+                    logger.error(
+                        'The webhook of Discord channel %s is invalid.',
+                        discord_channel,
+                    )
+                    return False
+    return True
+
+
 def main() -> None:
     """main function"""
 
@@ -205,6 +233,12 @@ def main() -> None:
     twitter_bearer_token = _get_twitter_bearer_token(path=TWITTER_SECRETS_PATH)
     discord_webhooks = _get_discord_webhooks(path=DISCORD_WEBHOOKS_PATH)
     api = tweepy.API(auth=tweepy.OAuth2BearerHandler(bearer_token=twitter_bearer_token))
+
+    if not _is_configuration_valid(
+        twitter_accounts=twitter_accounts,
+        discord_webhooks=discord_webhooks,
+    ):
+        sys.exit(-1)
 
     # Get the last ids that have fetched
     last_fetched_posts = _read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
