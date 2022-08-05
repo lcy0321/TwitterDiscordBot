@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
 def _get_twitter_accounts(path: str) -> List[TwitterAccount]:
     """Read Twitter user names that need to fetch from the file"""
     yaml = YAML()
-    with open(path) as twitter_accounts_flle:
+    with open(path, encoding='utf-8') as twitter_accounts_flle:
         twitter_account_dicts = yaml.load(twitter_accounts_flle)
 
     return [
@@ -49,7 +49,7 @@ def _get_twitter_bearer_token(path: str) -> str:
     """Read Twitter Bearer Token from the file"""
     config_parser = ConfigParser(interpolation=None)
 
-    with open(path) as secret_config_file:
+    with open(path, encoding='utf-8') as secret_config_file:
         config_parser.read_file(secret_config_file)
 
     return config_parser['Twitter']['BearerToken']
@@ -59,7 +59,7 @@ def _get_discord_webhooks(path: str) -> Dict[str, str]:
     """Read Discord webhook urls from the file"""
     config_parser = ConfigParser(interpolation=None)
 
-    with open(path) as webhooks_file:
+    with open(path, encoding='utf-8') as webhooks_file:
         config_parser.read_file(webhooks_file)
 
     return dict(config_parser['Webhooks'])
@@ -163,7 +163,7 @@ def _read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
     config_parser = ConfigParser(interpolation=None)
 
     try:
-        with open(filename) as last_id_file:
+        with open(filename, encoding='utf-8') as last_id_file:
             config_parser.read_file(last_id_file)
     except OSError:
         return {}
@@ -185,7 +185,7 @@ def _save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, in
     for screen_name, last_id in last_fetched_ids.items():
         config_parser['LastID'][screen_name.casefold()] = str(last_id)
 
-    with open(filename, 'w') as last_id_file:
+    with open(filename, 'w', encoding='utf-8') as last_id_file:
         config_parser.write(last_id_file)
 
 
@@ -206,7 +206,7 @@ def main() -> None:
     discord_webhooks = _get_discord_webhooks(path=DISCORD_WEBHOOKS_PATH)
     api = tweepy.API(auth=tweepy.OAuth2BearerHandler(bearer_token=twitter_bearer_token))
 
-    # Get the last ids that have fecthed
+    # Get the last ids that have fetched
     last_fetched_posts = _read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
 
     logger.info('Start to fetch tweets.')
@@ -222,7 +222,7 @@ def main() -> None:
                 discord_webhooks=discord_webhooks,
                 interval_count=interval_count,
             )
-        except Exception:
+        except Exception:   # pylint: disable=broad-except
             logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:

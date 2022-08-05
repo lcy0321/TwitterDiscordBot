@@ -45,7 +45,8 @@ class TwitterUserWrapper():
         user_id: int,
         profile_image_url: str,
     ) -> TwitterUserWrapper:
-        """Initialize the objects directly by the given values, onlt for testing."""
+        """Initialize the objects directly by the given values, only for testing."""
+        # pylint: disable=all
 
         obj = TwitterUserWrapper(None, screen_name)
         obj._name = name

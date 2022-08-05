@@ -3,6 +3,8 @@
 python -m twitter_discord_bot.debug {Tweet ID}
 """
 
+# pylint: disable=all
+
 import sys
 from pprint import pprint
 
