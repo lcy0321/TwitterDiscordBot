@@ -1,4 +1,5 @@
 """Helping functions that related to Discord API"""
+import html
 from dataclasses import dataclass
 from time import sleep
 from typing import Any, Dict, List, Optional, Union
@@ -11,7 +12,7 @@ from .twitter_api import TwitterUserWrapper
 
 
 @dataclass
-class DiscordPost():
+class DiscordPost:
     """Contains the contents of a Discord channel message"""
 
     username: str
@@ -24,8 +25,8 @@ class DiscordPost():
 
     @classmethod
     def _get_medias_from_twitter_status(
-            cls,
-            status: tweepy.models.Status
+        cls,
+        status: tweepy.models.Status,
     ) -> Optional[List[Dict[str, Dict[str, str]]]]:
         try:
             media_entities = status.extended_entities['media']
@@ -42,9 +43,9 @@ class DiscordPost():
 
     @classmethod
     def generate_from_twitter_status(
-            cls,
-            user: TwitterUserWrapper,
-            status: tweepy.models.Status
+        cls,
+        user: TwitterUserWrapper,
+        status: tweepy.models.Status,
     ) -> 'DiscordPost':
         """Generate DiscordPost from a TwitterUserWrapper and a tweepy.models.Status"""
 
@@ -71,13 +72,15 @@ class DiscordPost():
 
         if not (has_video or is_retweet):
             try:
-                text = status.full_text
+                text = html.unescape(status.full_text)
             except AttributeError:
-                text = status.text
+                text = html.unescape(status.text)
 
             contents: List[str] = []
 
-            contents.append(f'<http://twitter.com/{user.screen_name}/status/{status.id}>')
+            contents.append(
+                f'<http://twitter.com/{user.screen_name}/status/{status.id}>'
+            )
             contents.append(text)
 
             content = '\n'.join(contents)
@@ -102,7 +105,7 @@ class DiscordPost():
         if self.embeds is not None:
             payload['embeds'] = self.embeds
 
-        response = requests.post(webhook_url, json=payload)
+        response = requests.post(webhook_url, json=payload, timeout=10)
 
         sleep(sleep_seconds)
 

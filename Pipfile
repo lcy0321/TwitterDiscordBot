@@ -8,15 +8,16 @@ tweepy = "*"
 ruamel-yaml = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"
 
 [dev-packages]
 ipython = "*"
 pylint = "*"
-pexpect = "*"
 mypy = "*"
 flake8 = "*"
 coverage = "*"
 autopep8 = "*"
 rope = "*"
 micropipenv = "*"
+types-requests = "*"
+black = "*"

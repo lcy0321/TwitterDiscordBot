@@ -11,10 +11,10 @@ import tweepy.models
 
 from .models import TwitterAccount
 
-logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-class TwitterUserWrapper():
+class TwitterUserWrapper:
     """
     Contains the infomation of a Twitter user
 
@@ -33,7 +33,7 @@ class TwitterUserWrapper():
     def __init__(
             self,
             api: tweepy.API,
-            screen_name: str
+            screen_name: str,
     ) -> None:
         self._api = api
         self.screen_name = screen_name
@@ -45,8 +45,8 @@ class TwitterUserWrapper():
         user_id: int,
         profile_image_url: str,
     ) -> TwitterUserWrapper:
-        """Initialize the objects directly by the given values, only for testing."""
-        # pylint: disable=all
+        """Initialize the objects directly by the given values, onlt for testing."""
+        # pylint: disable=protected-access
 
         obj = TwitterUserWrapper(None, screen_name)
         obj._name = name
@@ -79,16 +79,19 @@ class TwitterUserWrapper():
 
     @property
     def name(self) -> str:
+        """Lazy loading"""
         self._init_if_needed()
         return self._name
 
     @property
     def user_id(self) -> int:
+        """Lazy loading"""
         self._init_if_needed()
         return self._user_id
 
     @property
     def profile_image_url(self) -> str:
+        """Lazy loading"""
         self._init_if_needed()
         return self._profile_image_url
 
@@ -117,7 +120,9 @@ def get_twitter_user_timeline(
     """Get statuses of the specific user from Twitter"""
 
     if since_id == -1:
-        logger.info('Doesn\'t found the information of last ids, fetch lastest 10 tweets...')
+        logger.info(
+            'Doesn\'t found the information of last ids, fetch lastest 10 tweets...'
+        )
 
         statuses = api.user_timeline(
             screen_name=user.screen_name,

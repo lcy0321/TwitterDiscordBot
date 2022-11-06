@@ -10,18 +10,25 @@ from typing import Dict, Iterable, List, Mapping, Optional
 import tweepy
 from ruamel.yaml import YAML
 
-from .configs import (DISCORD_WEBHOOKS_PATH, LAST_FETECHED_POSTS_PATH,
-                      TWITTER_ACCOUNTS_PATH, TWITTER_SECRETS_PATH)
+from .configs import (
+    DISCORD_WEBHOOKS_PATH,
+    LAST_FETECHED_POSTS_PATH,
+    TWITTER_ACCOUNTS_PATH,
+    TWITTER_SECRETS_PATH,
+)
 from .discord_api import DiscordPost
 from .models import TwitterAccount
-from .twitter_api import (TwitterUserWrapper, get_twitter_user_timeline,
-                          get_twitter_users_infos)
+from .twitter_api import (
+    TwitterUserWrapper,
+    get_twitter_user_timeline,
+    get_twitter_users_infos,
+)
 
 for logger_to_suppressed in (
-        'urllib3',
-        'oauthlib',
-        'requests_oauthlib',
-        'tweepy',
+    'urllib3',
+    'oauthlib',
+    'requests_oauthlib',
+    'tweepy',
 ):
     logging.getLogger(logger_to_suppressed).setLevel(logging.WARNING)
 
@@ -31,7 +38,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 
-logger = logging.getLogger(__name__)    # pylint: disable=invalid-name
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def _get_twitter_accounts(path: str) -> List[TwitterAccount]:
@@ -67,9 +74,9 @@ def _get_discord_webhooks(path: str) -> Dict[str, str]:
 
 
 def _post_tweets_to_discord(
-        user: TwitterUserWrapper,
-        statuses: List[tweepy.models.Status],
-        webhook_url: str,
+    user: TwitterUserWrapper,
+    statuses: List[tweepy.models.Status],
+    webhook_url: str,
 ) -> None:
     """Post the statuses to the Discord channel with the webhook"""
     for status in reversed(statuses):
@@ -92,12 +99,12 @@ def _post_tweets_to_discord(
 
 
 def _fetch_and_post(
-        twitter_api: tweepy.API,
-        twitter_accounts: List[TwitterAccount],
-        discord_webhooks: Mapping[str, str],
-        last_fetched_posts: Dict[str, int],
-        # to determine wheteher to post according to the interval
-        interval_count: int,
+    twitter_api: tweepy.API,
+    twitter_accounts: List[TwitterAccount],
+    discord_webhooks: Mapping[str, str],
+    last_fetched_posts: Dict[str, int],
+    # to determine wheteher to post according to the interval
+    interval_count: int,
 ) -> Dict[str, int]:
     """
     Fetch tweets and post them to the Discord channel.
@@ -183,7 +190,10 @@ def _read_last_fetched_ids_from_file(filename: str) -> Dict[str, int]:
     }
 
 
-def _save_last_fetched_ids_to_file(filename: str, last_fetched_ids: Dict[str, int]) -> None:
+def _save_last_fetched_ids_to_file(
+    filename: str,
+    last_fetched_ids: Dict[str, int],
+) -> None:
     """Read the id of tweets that have fetched last time from the file"""
 
     config_parser = ConfigParser(interpolation=None)
@@ -240,8 +250,10 @@ def main() -> None:
     ):
         sys.exit(-1)
 
-    # Get the last ids that have fetched
-    last_fetched_posts = _read_last_fetched_ids_from_file(filename=LAST_FETECHED_POSTS_PATH)
+    # Get the last ids that have fecthed
+    last_fetched_posts = _read_last_fetched_ids_from_file(
+        filename=LAST_FETECHED_POSTS_PATH,
+    )
 
     logger.info('Start to fetch tweets.')
 
@@ -256,7 +268,7 @@ def main() -> None:
                 discord_webhooks=discord_webhooks,
                 interval_count=interval_count,
             )
-        except Exception:   # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             logger.exception('Failed to fetch tweets.')
             receive_stop.wait(600)
         else:

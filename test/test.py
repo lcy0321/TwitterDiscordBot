@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, NonCallableMagicMock, mock_open, patch
 
 from twitter_discord_bot.twitter_discord_bot import (
     DiscordPost,
-    _get_twitter_bearer_token,
     _post_tweets_to_discord,
     _read_last_fetched_ids_from_file,
     _save_last_fetched_ids_to_file,

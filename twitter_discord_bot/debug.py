@@ -16,8 +16,11 @@ from .discord_api import DiscordPost
 from .twitter_api import TwitterUserWrapper
 from .twitter_discord_bot import _get_twitter_bearer_token
 
+# pylint: disable=protected-access
+
 
 def main() -> None:
+    """Fetch the tweet and print the information to post to Discord"""
 
     twitter_bearer_token = _get_twitter_bearer_token(path=TWITTER_SECRETS_PATH)
     api = tweepy.API(auth=tweepy.OAuth2BearerHandler(bearer_token=twitter_bearer_token))
